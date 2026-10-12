@@ -1,10 +1,9 @@
 import { create } from "zustand";
-
+let job = "gjhj";
 const UseTodoStore = create((set) => ({
   tasks: [],
 
 
-  
   addTask: (task) =>
     set((state) => ({
       tasks: [...state.tasks, task],
