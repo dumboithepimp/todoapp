@@ -1,56 +1,97 @@
-import UseTodoStore from "../Store/TodoStore";
-import { useState } from "react";
+import React, { useState } from "react";
+import { useTodoStore } from "../Store/TodoStore";
+import "../My-Style/style.css"
 
 
-function Todo(){
-    const [task,setTask] = useState("");
+function To() {
 
-    const[editIndex,setEditIndex] = useState(null);
-    const[editTask,setEditTask] =useState("");
+  const { todos, addTodo, toggleTodo, updateTodo, removeTodo } = useTodoStore();
+  const [inputText, setInputText] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState("");
 
-    const tasks = UseTodoStore((state) => state.tasks);
-    const addTask = UseTodoStore((state) => state.addTask);
-    const deleteTask = UseTodoStore((state) => state.deleteTask);
-    // const updateTask = UseTodoStore((state) => state.updateTask);
-    // const toggleComplete = UseTodoStore((state) => state.toggleComplete)
+  // Handle Create
+  const handleAdd = (e) => {
+    e.preventDefault();
+    if (!inputText.trim()) return;
+    addTodo(inputText);
+    setInputText("");
+  };
 
-    const handleAddTask = () =>{
-        if(task.trim() ==="")return
-        addTask(task);
-        setTask("")
-    };
+  // Set up Update Mode
+  const startEditing = (todo) => {
+    setEditingId(todo.id);
+    setEditText(todo.text);
+  };
 
-    // const handelEdit =(index) =>{
-    //     setEditIndex(index);
-    //     setEditTask(tasks[index])
-    // }
+  // Save the Updated Text
+  const handleUpdate = (id) => {
+    if (!editText.trim()) return;
+    updateTodo(id, editText);
+    setEditingId(null);
+  };
 
-    return(
-        <div className="todo-container">
-            <div className="input">
-           <input
-           className="input-group"
-           type="text"
-           placeholder="enter a task"
-           value={task}
-           onChange={(e) => setTask(e.target.value)}
-           />
-              <button className="add" onClick={handleAddTask}>add task</button>
+  return (
+    <div className="todo-container">
+      {/* FORM FOR CREATING TODOS */}
+
+      <form onSubmit={handleAdd} className="input1">
+        <input
+          className="input-group"
+          type="text"
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          placeholder="Add a new task..."
+        />
+        <button type="submit" className="add">
+          Add
+        </button>
+      </form>
+
+      {/* RENDER / READ TODOS */}
+      <ul className="todo-item">
+        {todos.map((todo) => (
+          <li key={todo.id}>
+            {editingId === todo.id ? (
+              // Inline Update UI
+              <div>
+                <input
+                  type="text"
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  style={{ flexGrow: 1, padding: "4px" }}
+                />
+                <button onClick={() => handleUpdate(todo.id)}>Save</button>
+                <button onClick={() => setEditingId(null)}>Cancel</button>
               </div>
-
-             {tasks.map((task,index) =>(
-              <div className="todo-item"  key={index}>
-                <span>
-                    <ul>
-                        <li>{task}</li>
-                    </ul>
-                </span>
-                 {/* <button onClick={() => handelEdit(index)}>edit</button> */}
-                <button className="delete" onClick={() => deleteTask(index)}>X</button>
+            ) : (
+              // Standard View (Read / Toggle / Delete UI)
+              <div className="parent">
+                <div className="first">
+                  <input
+                    type="checkbox"
+                    checked={todo.completed}
+                    onChange={() => toggleTodo(todo.id)}
+                  />
+                  <span>{todo.text}</span>
+                </div>
+                <div className="last">
+                  <button className="edit" onClick={() => startEditing(todo)}>edit</button>
+                  <button
+                    className="delete"
+                    onClick={() => removeTodo(todo.id)}
+                  >
+                    X
+                  </button>
+                </div>
               </div>
-             ))} 
-        </div>
-    )
+            )}
+          </li>
+        ))}
+      </ul>
+      {todos.length === 0 && <p>No tasks yet. Add one above!</p>}
+    </div>
+  );
 }
 
-export default Todo;
+export default To;
